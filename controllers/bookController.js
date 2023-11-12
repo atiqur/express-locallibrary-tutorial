@@ -156,7 +156,17 @@ exports.book_create_post = [
 
 // Display book delete form on GET.
 exports.book_delete_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Book delete GET");
+    const book = await Book.findById(req.params.id).populate("author").populate("genre").exec()
+    if (book === null) {
+        res.redirect("/catalog/")
+    }
+
+    res.render("book_delete", {
+        title: "Book Delete",
+        book: book.title,
+        author: book.author,
+        genre: book.genre
+    })
 });
 
 // Handle book delete on POST.
