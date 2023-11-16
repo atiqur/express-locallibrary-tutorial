@@ -86,12 +86,39 @@ exports.genre_create_post = [
 
 // Display Genre delete form on GET.
 exports.genre_delete_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Genre delete GET");
+    const [genre, books] = await Promise.all([
+        Genre.findById(req.params.id).exec(),
+        Book.find({ genre: req.params.id }).exec()
+    ])
+
+    if (genre === null) {
+        const err = new Error("Genre not found")
+        err.status = 404
+        return next(err)
+    }
+    res.render("genre_delete", {
+        title: "Delete Genre",
+        genre: genre,
+        books: books,
+    })
 });
 
 // Handle Genre delete on POST.
 exports.genre_delete_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Genre delete POST");
+    const [genre, books] = await Promise.all([
+        Genre.findById(req.params.id).exec(),
+        Book.find({ genre: req.params.id }).populate("genre").exec()
+    ])
+    if (books.length > 0) {
+        res.render("genre_delete", {
+            title: "Delete Genre",
+            genre: genre,
+            books: books,
+        })
+    } else {
+        await Genre.findByIdAndDelete(req.body.genreid).exec()
+        res.redirect("/catalog/genres")
+    }
 });
 
 // Display Genre update form on GET.
