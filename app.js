@@ -1,5 +1,7 @@
 const createError = require('http-errors');
 const express = require('express');
+const compression = require("compression");
+const helmet = require("helmet");
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
@@ -11,6 +13,25 @@ const catalogRouter = require("./routes/catalog");
 
 const app = express();
 
+// Add helmet to the middleware chain.
+// Set CSP headers to allow our Bootstrap and Jquery to be served
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      "script-src": ["'self'", "code.jquery.com", "cdn.jsdelivr.net"],
+    },
+  }),
+);
+
+// Set up rate limiter: maximum of twenty requests per minute
+const RateLimit = require("express-rate-limit");
+const limiter = RateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 20,
+});
+// Apply rate limiter to all requests
+app.use(limiter);
+
 // Set up mongoose connection
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
@@ -21,6 +42,7 @@ async function main() {
   await mongoose.connect(mongoDB);
 }
 
+app.use(compression()); // Compress all routes
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

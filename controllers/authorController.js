@@ -1,3 +1,4 @@
+const debug = require("debug")("author");
 const Book = require("../models/book");
 const Author = require("../models/author");
 const asyncHandler = require("express-async-handler");
